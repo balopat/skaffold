@@ -103,3 +103,6 @@ integration-in-docker:
 		-e GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) \
 		gcr.io/$(GCP_PROJECT)/skaffold-integration
 
+.PHONY: docs
+docs:
+	 cd docs; cat toc_order | xargs ../hack/gh-md-toc > toc.md
