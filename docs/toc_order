@@ -3,3 +3,6 @@ concepts.md
 docker-commands.md
 quickstart-gke.md
 building.md
+examples/microservices/README.md
+examples/no-manifest/README.md
+examples/helm-deployment/README.md
