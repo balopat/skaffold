@@ -1,4 +1,4 @@
-# Build from source TL;DR
+= Build from source TL;DR
 
 0. Install Go (minimum required version 1.10)
 

@@ -103,3 +103,8 @@ integration-in-docker:
 		-e GOOGLE_APPLICATION_CREDENTIALS=$(GOOGLE_APPLICATION_CREDENTIALS) \
 		gcr.io/$(GCP_PROJECT)/skaffold-integration
 
+.PHONY: docs
+docs:
+	asciidoctor -b html5 -B docs -D generated/html5 docs/*.adoc
+
+

@@ -1,10 +1,10 @@
-# Quick start for GKE
+= Quick start for GKE
 
-## Prerequisites
+== Prerequisites
 
 1. GCP Account. Sign up for [a free trial here](https://console.cloud.google.com/freetrial).
 
-## Setup
+== Setup
 
 [![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?git_repo=https%3A%2F%2Fgithub.com%2FGoogleContainerTools%2Fskaffold.git&page=editor&working_dir=examples%2Fgetting-started&tutorial=..%2F..%2Fdocs%2Fquickstart-gke.md)
 
@@ -28,7 +28,7 @@
     sudo mv skaffold /usr/local/bin
     ```
 
-## Continuous development
+== Continuous development
 The sample application you will use is a simple Go process that logs a statement every second.
 
 As a new developer on-boarding you need to start Skaffold in `dev` mode to begin iterating
