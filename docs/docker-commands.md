@@ -2,7 +2,7 @@
 
 Skaffold exposes some the of the dockerfile introspection functionality that it uses under the hood.
 
-#### skaffold docker deps
+## skaffold docker deps
 
 Many build systems require the developer to manually list the dependencies of a dockerfile.  Skaffold can inspect a dockerfile and output the file dependencies.  
 
@@ -17,7 +17,7 @@ out/getting-started: $(shell skaffold docker deps -c examples/getting-started -v
 	docker build -t getting-started . -q > out/getting-started
 ```
 
-#### skaffold docker context
+## skaffold docker context
 
 Skaffold can also generate a tarball that can be used as a "docker context" for hosted build systems. To use this with Google Cloud Build:
 
