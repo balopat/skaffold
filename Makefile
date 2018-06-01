@@ -105,4 +105,4 @@ integration-in-docker:
 
 .PHONY: docs
 docs:
-	 cd docs; cat toc_order | xargs ../hack/gh-md-toc > toc.md
+	 cd docs; cat toc_order | xargs ../hack/gh-md-toc > README.md
