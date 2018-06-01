@@ -1,4 +1,4 @@
-## µSvcs with Skaffold
+## Example: µSvcs with Skaffold
 
 In this example:
 
@@ -10,7 +10,7 @@ In the real world, Kubernetes deployments will consist of multiple applications 
 
 **WARNING:** *If you're running this on a cloud cluster, this example will create a service and expose a webserver. It's highly suggested that you only run this example on a local, private cluster like minikube or Kubernetes in Docker for Desktop.*
 
-## Running the example on minikube
+### Running the example on minikube
 
 From this directory, run
 
@@ -46,7 +46,7 @@ $ curl $(minikube service leeroy-web --url)
 leeroooooy app!!!
 ```
 
-## Configuration walkthrough
+### Configuration walkthrough
 
 Let's walk through the first part of the skaffold.yaml
 

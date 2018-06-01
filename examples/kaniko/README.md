@@ -1,0 +1,3 @@
+## Example: build with Kaniko
+
+

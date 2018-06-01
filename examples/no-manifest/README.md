@@ -1,4 +1,4 @@
-## Deploy Images without Kubernetes Manifests
+## Example: deploy Images without Kubernetes Manifests
 
 If you're using the `kubectl` deployer, you can deploy images without an accompanying kubernetes manifest. Skaffold will provide a very simple deployment template for the image.
 
@@ -26,7 +26,7 @@ Hi there, I love hello!
 ```
 
 
-## Configuration walkthrough
+### Configuration walkthrough
 
 To have skaffold provide a deployment for you, simply leave the manifests list empty in the deploy stanza
 

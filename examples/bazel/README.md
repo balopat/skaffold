@@ -1,0 +1,2 @@
+## Example: building with bazel
+

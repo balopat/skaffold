@@ -1,4 +1,4 @@
-## Helm example
+## Example: Helm deployment
 
 * Deploy multiple releases with Helm
 
