@@ -1,2 +1,2 @@
-# Skaffold documentation table of contents
+# Skaffold documentation
 
