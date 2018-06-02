@@ -1,7 +1,9 @@
 = Skaffold
-ifndef:imagesdir[]
+
+ifndef::imagesdir[]
 :imagesdir: docs/img
-endif:[]
+endif::[]
+
 :toc: macro
 
 [caption="Build status", link="https://travis-ci.org/GoogleContainerTools/skaffold"]
