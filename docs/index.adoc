@@ -1,21 +1,18 @@
 = Skaffold Documentation
 :toc: left
 
+:imagesdir: img
+include::../README.adoc[]
+:imagesdir!:
+
 include::concepts.adoc[]
 include::quickstart-gke.adoc[]
 
 
-== Contributing
+= Contributing
 
 include::building.adoc[]
 
-== Advanced topics
+= Advanced topics
 
 include::docker-commands.adoc[]
-
-//  - [Google Kubernetes Engine (GKE) with kubectl](quickstart-gke.adoc)
-// - [Local Development with kubectl](https://github.com/GoogleContainerTools/skaffold#getting-started-with-local-tooling)
-//- Advanced Topics
-//  - [Docker commands](docker-commands.md)
-
-

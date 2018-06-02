@@ -1,27 +1,20 @@
-# Skaffold
+= Skaffold
+ifndef:imagesdir[]
+:imagesdir: docs/img
+endif:[]
+:toc: macro
 
-[![Build Status](https://travis-ci.org/GoogleContainerTools/skaffold.svg?branch=master)](https://travis-ci.org/GoogleContainerTools/skaffold)
+[caption="Build status", link="https://travis-ci.org/GoogleContainerTools/skaffold"]
+image::https://travis-ci.org/GoogleContainerTools/skaffold.svg?branch=master[Build Status]
 
-Skaffold is a command line tool that facilitates continuous development for Kubernetes applications. You can iterate on your 
+Skaffold is a command line tool that facilitates continuous development for Kubernetes applications. You can iterate on your
 application source code locally then deploy to local or remote Kubernetes clusters. Skaffold handles the workflow for building,
-pushing and deploying your application. It can also be used in an automated context such as a CI/CD pipeline to leverage the same 
+pushing and deploying your application. It can also be used in an automated context such as a CI/CD pipeline to leverage the same
 workflow and tooling when moving applications to production.
 
-- [Skaffold](#skaffold)
-  - [Features](#features)
-  - [Pluggability](#pluggability)
-- [Operating modes](#operating-modes)
-  - [skaffold dev](#skaffold-dev)
-  - [skaffold run](#skaffold-run)
-- [Demo](#demo)  
-- [Getting Started with Local Tooling](#getting-started-with-local-tooling)
-  - [Installation](#installation)
-  - [Iterative Development](#iterative-development)
-  - [Run a deployment pipeline once](#run-a-deployment-pipeline-once)
-- [Future](#future)
-- [Community](#community)
+toc::[]
 
-### Features
+=== Features
 -  No server-side component. No overhead to your cluster.
 -  Detect changes in your source code and automatically build/push/deploy.
 -  Image tag management. Stop worrying about updating the image tags in Kubernetes manifests to push out changes during development.
@@ -29,33 +22,34 @@ workflow and tooling when moving applications to production.
 -  Support for multiple application components. Build and deploy only the pieces of your stack that have changed.
 -  Deploy regularly when saving files or run one off deployments using the same configuration.
 
-### Pluggability
+=== Pluggability
 Skaffold has a pluggable architecture that allows you to choose the tools in the developer workflow that work best for you.
-![Plugability Diagram](docs/img/plugability.png)
 
-## Operating modes
-### skaffold dev
+image::plugability.png[]
+
+== Operating modes
+=== skaffold dev
 Updates your deployed application continually:
 -  Watches your source code and the dependencies of your docker images for changes and runs a build and deploy when changes are detected
 -  Streams logs from deployed containers
 -  Continuous build-deploy loop, only warn on errors
 
-### skaffold run
-Runs a Skaffold pipeline once, exits on any errors in the pipeline.  
+=== skaffold run
+Runs a Skaffold pipeline once, exits on any errors in the pipeline.
 Use for:
 -  Continuous integration or continuous deployment pipelines
 -  Sanity checking after iterating on your application
 
-## Demo
+== Demo
 
-![Demo](/docs/img/intro.gif)
+image::intro.gif[Demo]
 
-## Getting Started with Local Tooling
+== Getting Started with Local Tooling
 
 For getting started with Google Kubernetes Engine and Container Builder [go here](docs/quickstart-gke.adoc). Otherwise continue
 below to get started with a local Kubernetes cluster.
 
-### Installation
+=== Installation
 
 You will need the following components to get started with Skaffold:
 
@@ -83,7 +77,7 @@ You will need the following components to get started with Skaffold:
         1. Install and configure GCR's standalone cred helper: [`docker-credential-gcr`](https://github.com/GoogleCloudPlatform/docker-credential-gcr#installation-and-usage)
         1. Run `gcloud docker -a` before each development session.
 
-### Iterative Development
+=== Iterative Development
 
 1. Clone this repository to get access to the examples.
 
@@ -167,19 +161,19 @@ Once you save the file, you should see the pipeline kick off again to redeploy y
 [getting-started] Hello jerry!
 ```
 
-### Run a deployment pipeline once
+=== Run a deployment pipeline once
 There may be some cases where you don't want to run build and deploy continuously. To run once, use:
 ```console
 $ skaffold run
 ```
 
-### More examples
+=== More examples
 
 * [Deploying with Helm](./examples/helm-deployment)
 * [Microservices/Multiple applications](./examples/microservices)
 * [Deploying with no Kubernetes manifests](./examples/no-manifest)
 * [Annotated skaffold.yaml](./examples/annotated-skaffold.yaml)
 
-## Community
+== Community
 - [skaffold-users mailing list](https://groups.google.com/forum/#!forum/skaffold-users)
 - [#skaffold on Kubernetes Slack](https://kubernetes.slack.com/messages/CABQMSZA6/)
