@@ -6,7 +6,8 @@
 
 == Setup
 
-[![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?git_repo=https%3A%2F%2Fgithub.com%2FGoogleContainerTools%2Fskaffold.git&page=editor&working_dir=examples%2Fgetting-started&tutorial=..%2F..%2Fdocs%2Fquickstart-gke.md)
+[caption="Open in Cloud Shell", link="https://console.cloud.google.com/cloudshell/open?git_repo=https%3A%2F%2Fgithub.com%2FGoogleContainerTools%2Fskaffold.git&page=editor&working_dir=examples%2Fgetting-started&tutorial=..%2F..%2Fdocs%2Fquickstart-gke.md"]
+image::http://gstatic.com/cloudssh/images/open-btn.svg[Open in Cloud Shell]
 
 1. Create a Kubernetes Engine cluster if you don't already have one.
 
