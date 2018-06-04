@@ -454,10 +454,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_installation">Installation</a></li>
 <li><a href="#_iterative_development">Iterative Development</a></li>
 <li><a href="#_run_a_deployment_pipeline_once">Run a deployment pipeline once</a></li>
-<li><a href="#_more_examples">More examples</a></li>
 </ul>
 </li>
-<li><a href="#_community">Community</a></li>
 <li><a href="#_concepts">Concepts</a>
 <ul class="sectlevel2">
 <li><a href="#_skaffold_configuration_file_or_skaffold_yaml">Skaffold configuration file or <code>skaffold.yaml</code></a></li>
@@ -471,6 +469,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_continuous_development">Continuous development</a></li>
 <li><a href="#_contributing">Contributing</a></li>
 <li><a href="#_build_from_source_tldr">Build from source TL;DR</a></li>
+<li><a href="#_community">Community</a></li>
 <li><a href="#_advanced_topics">Advanced topics</a></li>
 <li><a href="#_docker_commands">Docker Commands</a>
 <ul class="sectlevel2">
@@ -485,18 +484,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_skaffold">Skaffold</h2>
 <div class="sectionbody">
-<div class="imageblock">
-<div class="content">
-<a class="image" href="https://travis-ci.org/GoogleContainerTools/skaffold"><img src="https://travis-ci.org/GoogleContainerTools/skaffold.svg?branch=master" alt="Build Status"></a>
-</div>
-</div>
 <div class="paragraph">
 <p>Skaffold is a command line tool that facilitates continuous development for Kubernetes applications.
 You can iterate on your application source code locally then deploy to local or remote Kubernetes clusters.
 Skaffold handles the workflow for building, pushing and deploying your application.
 It can also be used in an automated context such as a CI/CD pipeline to leverage the same workflow and tooling when moving applications to production.</p>
 </div>
-<!-- toc disabled -->
 <div class="sect2">
 <h3 id="_features">Features</h3>
 <div class="ulist">
@@ -777,40 +770,6 @@ index 64b7bdfc..f95e053d .0644
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_more_examples">More examples</h3>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="./examples/helm-deployment">Deploying with Helm</a></p>
-</li>
-<li>
-<p><a href="./examples/microservices">Microservices/Multiple applications</a></p>
-</li>
-<li>
-<p><a href="./examples/no-manifest">Deploying with no Kubernetes manifests</a></p>
-</li>
-<li>
-<p><a href="./examples/annotated-skaffold.yaml">Annotated skaffold.yaml</a></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_community">Community</h2>
-<div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://groups.google.com/forum/#!forum/skaffold-users">skaffold-users mailing list</a></p>
-</li>
-<li>
-<p><a href="https://kubernetes.slack.com/messages/CABQMSZA6/">#skaffold on Kubernetes Slack</a></p>
-</li>
-</ul>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -1067,6 +1026,21 @@ rebuild, repush and redeploy the change. You will see your new log line now stre
 </div>
 </div>
 <div class="sect1">
+<h2 id="_community">Community</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://groups.google.com/forum/#!forum/skaffold-users">skaffold-users mailing list</a></p>
+</li>
+<li>
+<p><a href="https://kubernetes.slack.com/messages/CABQMSZA6/">#skaffold on Kubernetes Slack</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_advanced_topics">Advanced topics</h2>
 <div class="sectionbody">
 
@@ -1119,7 +1093,7 @@ $ gcloud container builds submit context.tar.gz --tag="gcr.io/$(gcloud config ge
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-06-04 14:57:21 PDT
+Last updated 2018-06-04 16:37:29 PDT
 </div>
 </div>
 </body>

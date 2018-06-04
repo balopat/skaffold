@@ -3,7 +3,12 @@
 
 :imagesdir: img
 
-include::../README.adoc[]
+include::../README.adoc[leveloffset=+1,tags=title;intro;features;pluggability;operatingmodes]
+
+include::../README.adoc[leveloffset=+1,tags=demo]
+
+include::../README.adoc[leveloffset=+1,tags=getting_started_local]
+
 
 include::concepts.adoc[]
 include::quickstart-gke.adoc[]
@@ -12,6 +17,8 @@ include::quickstart-gke.adoc[]
 == Contributing
 
 include::building.adoc[]
+
+include::../README.adoc[leveloffset=+1,tags=community]
 
 == Advanced topics
 

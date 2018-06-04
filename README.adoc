@@ -1,57 +1,72 @@
-== Skaffold
+//tag::title[]
 
+= Skaffold
+:toc: macro
 ifndef::imagesdir[]
 :imagesdir: docs/img
 endif::[]
-
-:toc: macro
+//end::title[]
 
 [caption="Build status", link="https://travis-ci.org/GoogleContainerTools/skaffold"]
 image::https://travis-ci.org/GoogleContainerTools/skaffold.svg?branch=master[Build Status]
 
+//tag::intro[]
 Skaffold is a command line tool that facilitates continuous development for Kubernetes applications.
 You can iterate on your application source code locally then deploy to local or remote Kubernetes clusters.
 Skaffold handles the workflow for building, pushing and deploying your application.
 It can also be used in an automated context such as a CI/CD pipeline to leverage the same workflow and tooling when moving applications to production.
+//end::intro[]
 
 toc::[]
 
-=== Features
+//tag::features[]
+
+== Features
 -  No server-side component. No overhead to your cluster.
 -  Detect changes in your source code and automatically build/push/deploy.
 -  Image tag management. Stop worrying about updating the image tags in Kubernetes manifests to push out changes during development.
 -  Supports existing tooling and workflows. Build and deploy APIs make each implementation composable to support many different workflows.
 -  Support for multiple application components. Build and deploy only the pieces of your stack that have changed.
 -  Deploy regularly when saving files or run one off deployments using the same configuration.
+//end::features[]
 
-=== Pluggability
+//tag::pluggability[]
+
+== Pluggability
 Skaffold has a pluggable architecture that allows you to choose the tools in the developer workflow that work best for you.
 
 image::plugability.png[]
+//end::pluggability[]
 
-== Operating modes
-=== skaffold dev
+//tag::operatingmodes[]
+
+= Operating modes
+== skaffold dev
 Updates your deployed application continually:
 -  Watches your source code and the dependencies of your docker images for changes and runs a build and deploy when changes are detected
 -  Streams logs from deployed containers
 -  Continuous build-deploy loop, only warn on errors
 
-=== skaffold run
+== skaffold run
 Runs a Skaffold pipeline once, exits on any errors in the pipeline.
 Use for:
 -  Continuous integration or continuous deployment pipelines
 -  Sanity checking after iterating on your application
+//end::operatingmodes[]
 
-== Demo
+//tag::demo[]
+= Demo
 
 image::intro.gif[Demo]
+//end::demo[]
+//tag::getting_started_local[]
 
-== Getting Started with Local Tooling
+= Getting Started with Local Tooling
 
 For getting started with Google Kubernetes Engine and Container Builder link:docs/quickstart-gke.adoc[go here]. Otherwise continue
 below to get started with a local Kubernetes cluster.
 
-=== Installation
+== Installation
 
 You will need the following components to get started with Skaffold:
 
@@ -79,7 +94,7 @@ You will need the following components to get started with Skaffold:
         . Install and configure GCR's standalone cred helper: link:https://github.com/GoogleCloudPlatform/docker-credential-gcr#installation-and-usage[`docker-credential-gcr`]
         . Run `gcloud docker -a` before each development session.
 
-=== Iterative Development
+== Iterative Development
 
 . Clone this repository to get access to the examples.
 [source,shell]
@@ -155,20 +170,27 @@ Once you save the file, you should see the pipeline kick off again to redeploy y
 [getting-started] Hello jerry!
 [getting-started] Hello jerry!
 
-=== Run a deployment pipeline once
+== Run a deployment pipeline once
 There may be some cases where you don't want to run build and deploy continuously. To run once, use:
 [source,console]
 -----
 $ skaffold run
 -----
 
-=== More examples
+//end::getting_started_local[]
+
+//tag::more_examples[]
+= More examples
 
 * link:./examples/helm-deployment[Deploying with Helm]
 * link:./examples/microservices[Microservices/Multiple applications]
 * link:./examples/no-manifest[Deploying with no Kubernetes manifests]
 * link:./examples/annotated-skaffold.yaml[Annotated skaffold.yaml]
+//end::more_examples[]
 
-== Community
+
+//tag::community[]
+= Community
 - link:https://groups.google.com/forum/#!forum/skaffold-users[skaffold-users mailing list]
 - link:https://kubernetes.slack.com/messages/CABQMSZA6/[#skaffold on Kubernetes Slack]
+//end::community[]
