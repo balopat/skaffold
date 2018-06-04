@@ -105,6 +105,6 @@ integration-in-docker:
 
 .PHONY: docs
 docs:
-	asciidoctor  -a data-uri -b html5 -D docs/html docs/*.adoc
+	asciidoctor  -a data-uri -b html5 -D docs/generated/html docs/index.adoc
 
 

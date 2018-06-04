@@ -2,17 +2,17 @@
 :toc: left
 
 :imagesdir: img
+
 include::../README.adoc[]
-:imagesdir!:
 
 include::concepts.adoc[]
 include::quickstart-gke.adoc[]
 
 
-= Contributing
+== Contributing
 
 include::building.adoc[]
 
-= Advanced topics
+== Advanced topics
 
 include::docker-commands.adoc[]

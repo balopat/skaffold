@@ -1,4 +1,4 @@
-= Concepts
+== Concepts
 This document explains the concepts you will encounter when using Skaffold.
 
 === Skaffold configuration file or `skaffold.yaml`
