@@ -22,6 +22,7 @@ toc::[]
 //tag::features[]
 
 == Features
+
 -  No server-side component. No overhead to your cluster.
 -  Detect changes in your source code and automatically build/push/deploy.
 -  Image tag management. Stop worrying about updating the image tags in Kubernetes manifests to push out changes during development.
@@ -43,6 +44,7 @@ image::plugability.png[]
 = Operating modes
 == skaffold dev
 Updates your deployed application continually:
+
 -  Watches your source code and the dependencies of your docker images for changes and runs a build and deploy when changes are detected
 -  Streams logs from deployed containers
 -  Continuous build-deploy loop, only warn on errors
@@ -50,6 +52,7 @@ Updates your deployed application continually:
 == skaffold run
 Runs a Skaffold pipeline once, exits on any errors in the pipeline.
 Use for:
+
 -  Continuous integration or continuous deployment pipelines
 -  Sanity checking after iterating on your application
 //end::operatingmodes[]

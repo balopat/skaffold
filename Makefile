@@ -105,6 +105,10 @@ integration-in-docker:
 
 .PHONY: docs
 docs:
-	asciidoctor  -a data-uri -b html5 -D docs/generated/html docs/index.adoc
+	docker run -it -v $(PWD):/documents/ asciidoctor/docker-asciidoctor asciidoctor -a data-uri -b html5 -D docs/generated/ docs/index.adoc
+	docker run -it -v $(PWD):/documents/ asciidoctor/docker-asciidoctor asciidoctor-pdf -a data-uri  -D docs/generated/ docs/index.adoc
+	docker run -it -v $(PWD):/documents/ asciidoctor/docker-asciidoctor asciidoctor-epub -a data-uri  -D docs/generated/ docs/index.adoc
+	gsutil cp -R docs/generated/* gs://balint-skaffold/
+	gsutil acl ch -mru AllUsers:R gs://balint-skaffold/*
 
 
