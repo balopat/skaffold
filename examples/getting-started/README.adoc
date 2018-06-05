@@ -1,0 +1,9 @@
+=== Example: Getting started with a simple go app
+
+. Prepare your project files
+
+[source,Dockerfile, indent=3, title=Dockerfile]
+----
+include::Dockerfile[]
+----
+

@@ -13,6 +13,7 @@ include::../README.adoc[leveloffset=+1,tags=getting_started_local]
 include::concepts.adoc[]
 include::quickstart-gke.adoc[]
 
+include::../examples/README.adoc[]
 
 == Contributing
 
@@ -23,3 +24,4 @@ include::../README.adoc[leveloffset=+1,tags=community]
 == Advanced topics
 
 include::docker-commands.adoc[]
+
