@@ -197,3 +197,5 @@ $ skaffold run
 - link:https://groups.google.com/forum/#!forum/skaffold-users[skaffold-users mailing list]
 - link:https://kubernetes.slack.com/messages/CABQMSZA6/[#skaffold on Kubernetes Slack]
 //end::community[]
+
+Hello :)
