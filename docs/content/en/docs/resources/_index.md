@@ -7,7 +7,18 @@ weight: 130
 
 ## Roadmap
 
-{{% todo 134 %}}
+## 2019 plan 
+
+* Plugin model for builders 
+* IDE integration - VSCode and IntelliJ skaffold target support, skaffold.yaml code completion
+* Debugging JVM applications
+* Provide help with integration testing    
+* Hybrid (local and remote) deployments 
+* Skaffold keeps track of what it built, for faster restarts
+* Automated kubernetes manifest generation
+* Pipeline CRD integration
+* Infrastructure scaffolding for CI/CD on GCP/GKE  
+* Document end-to-end solutions
 
 ## Contributing
 
