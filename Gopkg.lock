@@ -334,6 +334,27 @@
   revision = "c63ab54fda8f77302f8d414e19933f2b6026a089"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-hclog"
+  packages = ["."]
+  revision = "61d530d6c27f994fb6c83b80f99a69c54125ec8a"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-plugin"
+  packages = [
+    ".",
+    "internal/proto"
+  ]
+  revision = "f444068e8f5a19853177f7aa0aea7e7d95b5b528"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/yamux"
+  packages = ["."]
+  revision = "2f1d1f20f75d5404f53b9edf6b53ed5505508675"
+
+[[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
   revision = "9f23e2d6bd2a77f959b2bf6acdbefd708a83a4a4"
@@ -406,6 +427,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/mitchellh/go-testing-interface"
+  packages = ["."]
+  revision = "6d0b8010fcc857872e42fc6c931227569016843c"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/moby/buildkit"
   packages = [
     "frontend/dockerfile/command",
@@ -426,6 +453,12 @@
   packages = ["."]
   revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
   version = "1.0.1"
+
+[[projects]]
+  name = "github.com/oklog/run"
+  packages = ["."]
+  revision = "4dadeb3030eda0273a12382bb2348ffc7c9d1a39"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/opencontainers/go-digest"
@@ -701,6 +734,8 @@
     "encoding",
     "encoding/proto",
     "grpclog",
+    "health",
+    "health/grpc_health_v1",
     "internal",
     "internal/backoff",
     "internal/channelz",
@@ -995,6 +1030,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "55e9ad80e77bb78022fed3ba04928643bd4e7c73e01297a42205f08ae19599ce"
+  inputs-digest = "f675a9c51c9f20364b3356978f4d3e76dfcde4f069b9bbb3a6a383e620ba8eb2"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -44,6 +44,7 @@ import (
 
 // Build builds a list of artifacts with Google Cloud Build.
 func (b *Builder) Build(ctx context.Context, out io.Writer, tagger tag.Tagger, artifacts []*latest.Artifact) ([]build.Artifact, error) {
+	color.Red.Fprintf(out, "HELLO from build!\n")
 	return build.InParallel(ctx, out, tagger, artifacts, b.buildArtifactWithCloudBuild)
 }
 
@@ -91,6 +92,7 @@ func (b *Builder) buildArtifactWithCloudBuild(ctx context.Context, out io.Writer
 	}
 
 	desc := b.buildDescription(artifact, cbBucket, buildObject)
+	color.LightRed.Fprintf(out, "Description: %+v", *desc.Steps[0])
 	call := cbclient.Projects.Builds.Create(projectID, desc)
 	op, err := call.Context(ctx).Do()
 	if err != nil {
@@ -103,7 +105,7 @@ func (b *Builder) buildArtifactWithCloudBuild(ctx context.Context, out io.Writer
 	}
 	logsObject := fmt.Sprintf("log-%s.txt", remoteID)
 	color.Default.Fprintf(out, "Logs are available at \nhttps://console.cloud.google.com/m/cloudstorage/b/%s/o/%s\n", cbBucket, logsObject)
-
+	color.Cyan.Fprintf(out, "Stderr: %v", out)
 	var digest string
 	offset := int64(0)
 watch:

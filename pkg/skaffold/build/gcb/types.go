@@ -17,6 +17,8 @@ limitations under the License.
 package gcb
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/constants"
@@ -66,6 +68,8 @@ func NewBuilder(cfg *latest.GoogleCloudBuild) *Builder {
 
 // Labels are labels specific to Google Cloud Build.
 func (b *Builder) Labels() map[string]string {
+	fmt.Println("BUILDER PLUGIN LABELS!")
+	log.Printf("helllo from labels")
 	return map[string]string{
 		constants.Labels.Builder: "google-cloud-build",
 	}

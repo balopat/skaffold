@@ -1,6 +1,10 @@
 apiVersion: skaffold/v1beta2
 kind: Config
 build:
+#  googleCloudBuild:
+#    projectId: balintp-gcp-lab
+  plugin:
+    name: cloudbuild
   artifacts:
   - image: gcr.io/k8s-skaffold/skaffold-example
 deploy:

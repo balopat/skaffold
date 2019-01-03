@@ -43,9 +43,10 @@ func (c *SkaffoldPipeline) GetVersion() string {
 
 // BuildConfig contains all the configuration for the build steps
 type BuildConfig struct {
-	Artifacts []*Artifact `yaml:"artifacts,omitempty"`
-	TagPolicy TagPolicy   `yaml:"tagPolicy,omitempty"`
-	BuildType `yaml:",inline"`
+	Artifacts   []*Artifact `yaml:"artifacts,omitempty"`
+	TagPolicy   TagPolicy   `yaml:"tagPolicy,omitempty"`
+	BuildType   `yaml:",inline"`
+
 }
 
 // TagPolicy contains all the configuration for the tagging step
@@ -79,6 +80,7 @@ type BuildType struct {
 	LocalBuild       *LocalBuild       `yaml:"local,omitempty" yamltags:"oneOf=build"`
 	GoogleCloudBuild *GoogleCloudBuild `yaml:"googleCloudBuild,omitempty" yamltags:"oneOf=build"`
 	KanikoBuild      *KanikoBuild      `yaml:"kaniko,omitempty" yamltags:"oneOf=build"`
+	PluginBuild 	 *PluginBuild      `yaml:"plugin,omitempty" yamltags:"oneOf=build"`
 }
 
 // LocalBuild contains the fields needed to do a build on the local docker daemon
@@ -128,6 +130,9 @@ type KanikoBuild struct {
 	Image           string              `yaml:"image,omitempty"`
 }
 
+type PluginBuild struct {
+	Name string `yaml:"name,omitempty"`
+}
 type TestConfig []*TestCase
 
 // TestCase is a struct containing all the specified test

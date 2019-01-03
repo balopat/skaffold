@@ -19,6 +19,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/plugin"
 	"io"
 	"os"
 
@@ -118,6 +119,10 @@ func getBuilder(cfg *latest.BuildConfig, kubeContext string, opts *config.Skaffo
 	case len(opts.PreBuiltImages) > 0:
 		logrus.Debugln("Using pre-built images")
 		return build.NewPreBuiltImagesBuilder(opts.PreBuiltImages), nil
+
+	case cfg.PluginBuild != nil:
+		logrus.Debugln("Using builder: plugin")
+		return plugin.NewPluginBuilder(cfg.PluginBuild.Name), nil
 
 	case cfg.LocalBuild != nil:
 		logrus.Debugln("Using builder: local")
