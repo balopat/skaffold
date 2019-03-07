@@ -52,7 +52,7 @@ func Test_addLinksToTar(t *testing.T) {
 	for src, dst := range links {
 		srcPath := tmpDir.Path(src)
 		if err := os.MkdirAll(filepath.Dir(srcPath), 0750); err != nil {
-			t.Fatalf("Error setting up test dirs: %s", err)
+			t.Fatalf("Error setting up test dirs.md: %s", err)
 		}
 		if err := os.Symlink(dst, srcPath); err != nil {
 			t.Fatalf("Error setting up links: %s", err)
