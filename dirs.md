@@ -4,15 +4,20 @@ Current version
 pkg
 ├── skaffold
 │   ├── apiversion
-│   ├── bazel
 │   ├── build
-│   │   ├── bazel
-│   │   ├── docker
-│   │   ├── kaniko
-│   │   │   └── sources
-│   │   ├── local
-│   │   ├── plugin
-│   │   └── tag
+│   │   ├── cache
+│   │   ├── 
+│   │   │   ├── bazel
+│   │   │   ├── docker
+│   │   │   ├── jib
+│   │   │   └── kaniko
+│   │   │       └── sources
+│   │   ├── environments
+│   │   │   └── gcb
+│   │   │   └── local
+│   │   │   └── incluster
+│   │   ├── plugin # whatever is in shared currently + PluginBuilder implementation 
+│   │        └── builder.go 
 │   ├── color
 │   ├── config
 │   ├── constants
@@ -26,16 +31,8 @@ pkg
 │   ├── event
 │   │   └── proto
 │   ├── gcp
-│   ├── jib
 │   ├── kubernetes
 │   │   └── context
-│   ├── plugin
-│   │   ├── builders
-│   │   │   ├── bazel
-│   │   │   └── docker
-│   │   ├── environments
-│   │   │   └── gcb
-│   │   └── shared
 │   ├── runner
 │   ├── schema
 │   │   ├── defaults
@@ -54,6 +51,7 @@ pkg
 │   ├── sources
 │   ├── sync
 │   │   └── kubectl
+│   ├── tag
 │   ├── test
 │   │   └── structure
 │   ├── update
