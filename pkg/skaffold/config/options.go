@@ -41,7 +41,9 @@ type SkaffoldOptions struct {
 	CustomTag          string
 	Namespace          string
 	CacheFile          string
-	Trigger            string
+	BuildTrigger       string
+	DeployTrigger      string
+	SyncTrigger        string
 	WatchPollInterval  int
 	DefaultRepo        string
 	CustomLabels       []string

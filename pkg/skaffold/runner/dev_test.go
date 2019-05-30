@@ -19,20 +19,23 @@ package runner
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"testing"
+	"time"
 
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/filewatch"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/sync"
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/watch"
 	"github.com/GoogleContainerTools/skaffold/testutil"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
 type NoopWatcher struct{}
 
-func (t *NoopWatcher) Register(func() ([]string, error), func(watch.Events)) error {
+func (t *NoopWatcher) Register(func() ([]string, error), func(filewatch.Events)) error {
 	return nil
 }
 
@@ -40,9 +43,13 @@ func (t *NoopWatcher) Run(context.Context, io.Writer, func() error) error {
 	return nil
 }
 
+func (t *NoopWatcher) ComputeChanges(_ bool) error {
+	return nil
+}
+
 type FailWatcher struct{}
 
-func (t *FailWatcher) Register(func() ([]string, error), func(watch.Events)) error {
+func (t *FailWatcher) Register(func() ([]string, error), func(filewatch.Events)) error {
 	return nil
 }
 
@@ -50,22 +57,29 @@ func (t *FailWatcher) Run(context.Context, io.Writer, func() error) error {
 	return errors.New("BUG")
 }
 
+func (t *FailWatcher) ComputeChanges(_ bool) error {
+	return errors.New("UH OH")
+}
+
 type TestWatcher struct {
-	events    []watch.Events
-	callbacks []func(watch.Events)
+	events    []filewatch.Events
+	callbacks []func(filewatch.Events)
 	testBench *TestBench
 }
 
-func (t *TestWatcher) Register(deps func() ([]string, error), onChange func(watch.Events)) error {
+func (t *TestWatcher) Register(deps func() ([]string, error), onChange func(filewatch.Events)) error {
 	t.callbacks = append(t.callbacks, onChange)
 	return nil
 }
 
-func (t *TestWatcher) Run(ctx context.Context, out io.Writer, onChange func() error) error {
+func (t *TestWatcher) ComputeChanges(_ bool) error {
 	for _, evt := range t.events {
-		t.testBench.enterNewCycle()
-
 		for _, file := range evt.Modified {
+			_, changed := t.testBench.changeSet.Load(file)
+			// _, changed := t.testBench.changeSet[file]
+			if !changed {
+				return nil
+			}
 			switch file {
 			case "file1":
 				t.callbacks[0](evt) // 1st artifact changed
@@ -74,10 +88,7 @@ func (t *TestWatcher) Run(ctx context.Context, out io.Writer, onChange func() er
 			case "manifest.yaml":
 				t.callbacks[3](evt) // deployment configuration changed
 			}
-		}
-
-		if err := onChange(); err != nil {
-			return err
+			t.testBench.MarkProcessed(file)
 		}
 	}
 
@@ -88,41 +99,41 @@ func TestDevFailFirstCycle(t *testing.T) {
 	var tests = []struct {
 		description     string
 		testBench       *TestBench
-		watcher         watch.Watcher
-		expectedActions []Actions
+		watcher         filewatch.FileWatcher
+		expectedActions Actions
 	}{
 		{
 			description:     "fails to build the first time",
-			testBench:       &TestBench{buildErrors: []error{errors.New("")}},
+			testBench:       NewTestBench().WithBuildErrors([]error{errors.New("")}),
 			watcher:         &NoopWatcher{},
-			expectedActions: []Actions{{}},
+			expectedActions: Actions{},
 		},
 		{
 			description: "fails to test the first time",
-			testBench:   &TestBench{testErrors: []error{errors.New("")}},
+			testBench:   NewTestBench().WithTestErrors([]error{errors.New("")}),
 			watcher:     &NoopWatcher{},
-			expectedActions: []Actions{{
+			expectedActions: Actions{
 				Built: []string{"img:1"},
-			}},
+			},
 		},
 		{
 			description: "fails to deploy the first time",
-			testBench:   &TestBench{deployErrors: []error{errors.New("")}},
+			testBench:   NewTestBench().WithDeployErrors([]error{errors.New("")}),
 			watcher:     &NoopWatcher{},
-			expectedActions: []Actions{{
+			expectedActions: Actions{
 				Built:  []string{"img:1"},
 				Tested: []string{"img:1"},
-			}},
+			},
 		},
 		{
 			description: "fails to watch after first cycle",
-			testBench:   &TestBench{},
+			testBench:   NewTestBench(),
 			watcher:     &FailWatcher{},
-			expectedActions: []Actions{{
+			expectedActions: Actions{
 				Built:    []string{"img:1"},
 				Tested:   []string{"img:1"},
 				Deployed: []string{"img:1"},
-			}},
+			},
 		},
 	}
 	for _, test := range tests {
@@ -130,7 +141,7 @@ func TestDevFailFirstCycle(t *testing.T) {
 			t.SetupFakeKubernetesContext(api.Config{CurrentContext: "cluster1"})
 
 			runner := createRunner(t, test.testBench)
-			runner.Watcher = test.watcher
+			runner.FileWatcher = test.watcher
 
 			err := runner.Dev(context.Background(), ioutil.Discard, []*latest.Artifact{{
 				ImageName: "img",
@@ -145,129 +156,115 @@ func TestDev(t *testing.T) {
 	var tests = []struct {
 		description     string
 		testBench       *TestBench
-		watchEvents     []watch.Events
-		expectedActions []Actions
+		watchEvents     []filewatch.Events
+		expectedActions Actions
 	}{
 		{
 			description: "ignore subsequent build errors",
-			testBench:   &TestBench{buildErrors: []error{nil, errors.New("")}},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench().WithBuildErrors([]error{nil, errors.New("")}),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"file1", "file2"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1"},
+				Tested:   []string{"img1:1", "img2:1"},
+				Deployed: []string{"img1:1", "img2:1"},
 			},
 		},
 		{
 			description: "ignore subsequent test errors",
-			testBench:   &TestBench{testErrors: []error{nil, errors.New("")}},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench().WithTestErrors([]error{nil, errors.New("")}),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"file1", "file2"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{
-					Built: []string{"img1:2", "img2:2"},
-				},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1", "img1:2", "img2:2"},
+				Tested:   []string{"img1:1", "img2:1"},
+				Deployed: []string{"img1:1", "img2:1"},
 			},
 		},
 		{
 			description: "ignore subsequent deploy errors",
-			testBench:   &TestBench{deployErrors: []error{nil, errors.New("")}},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench().WithDeployErrors([]error{nil, errors.New("")}),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"file1", "file2"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{
-					Built:  []string{"img1:2", "img2:2"},
-					Tested: []string{"img1:2", "img2:2"},
-				},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1", "img1:2", "img2:2"},
+				Tested:   []string{"img1:1", "img2:1", "img1:2", "img2:2"},
+				Deployed: []string{"img1:1", "img2:1"},
 			},
 		},
 		{
 			description: "full cycle twice",
-			testBench:   &TestBench{},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench(),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"file1", "file2"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{
-					Built:    []string{"img1:2", "img2:2"},
-					Tested:   []string{"img1:2", "img2:2"},
-					Deployed: []string{"img1:2", "img2:2"},
-				},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1", "img1:2", "img2:2"},
+				Tested:   []string{"img1:1", "img2:1", "img1:2", "img2:2"},
+				Deployed: []string{"img1:1", "img2:1", "img1:2", "img2:2"},
 			},
 		},
 		{
 			description: "only change second artifact",
-			testBench:   &TestBench{},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench(),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"file2"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{
-					Built:    []string{"img2:2"},
-					Tested:   []string{"img2:2"},
-					Deployed: []string{"img2:2", "img1:1"},
-				},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1", "img2:2"},
+				Tested:   []string{"img1:1", "img2:1", "img2:2"},
+				Deployed: []string{"img1:1", "img2:1", "img2:2", "img1:1"},
 			},
 		},
 		{
 			description: "redeploy",
-			testBench:   &TestBench{},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench(),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"manifest.yaml"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{
-					Deployed: []string{"img1:1", "img2:1"},
-				},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1"},
+				Tested:   []string{"img1:1", "img2:1"},
+				Deployed: []string{"img1:1", "img2:1", "img1:1", "img2:1"},
 			},
 		},
 	}
 	for _, test := range tests {
 		testutil.Run(t, test.description, func(t *testutil.T) {
 			t.SetupFakeKubernetesContext(api.Config{CurrentContext: "cluster1"})
+			test.testBench.currentActions = Actions{}
 
 			runner := createRunner(t, test.testBench)
-			runner.Watcher = &TestWatcher{
+			runner.FileWatcher = &TestWatcher{
 				events:    test.watchEvents,
 				testBench: test.testBench,
 			}
 
-			err := runner.Dev(context.Background(), ioutil.Discard, []*latest.Artifact{
-				{ImageName: "img1"},
-				{ImageName: "img2"},
-			})
+			var err error
+			errChan := make(chan error, 1)
+			ctx, cancel := context.WithCancel(context.Background())
+			go func(errChan chan error) {
+				errChan <- runner.Dev(ctx, ioutil.Discard, []*latest.Artifact{
+					{ImageName: "img1"},
+					{ImageName: "img2"},
+				})
+			}(errChan)
+
+			for _, e := range test.watchEvents {
+				for _, m := range e.Modified {
+					test.testBench.MarkChanged(m)
+				}
+			}
+
+			timer := time.NewTimer(2 * time.Second)
+			<-timer.C
+			cancel()
+			err = <-errChan
+
+			fmt.Fprintf(os.Stdout, "after dev loop, actions: %+v\n", test.testBench.Actions())
 
 			t.CheckNoError(err)
 			t.CheckDeepEqual(test.expectedActions, test.testBench.Actions())
@@ -276,73 +273,87 @@ func TestDev(t *testing.T) {
 }
 
 func TestDevSync(t *testing.T) {
+
 	var tests = []struct {
 		description     string
 		testBench       *TestBench
-		watchEvents     []watch.Events
-		expectedActions []Actions
+		watchEvents     []filewatch.Events
+		expectedActions Actions
 	}{
 		{
 			description: "sync",
-			testBench:   &TestBench{},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench(),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"file1"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{
-					Synced: []string{"img1:1"},
-				},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1"},
+				Tested:   []string{"img1:1", "img2:1"},
+				Deployed: []string{"img1:1", "img2:1"},
+				Synced:   []string{"img1:1"},
 			},
 		},
 		{
 			description: "sync twice",
-			testBench:   &TestBench{},
-			watchEvents: []watch.Events{
+			testBench:   NewTestBench(),
+			watchEvents: []filewatch.Events{
 				{Modified: []string{"file1"}},
 				{Modified: []string{"file1"}},
 			},
-			expectedActions: []Actions{
-				{
-					Built:    []string{"img1:1", "img2:1"},
-					Tested:   []string{"img1:1", "img2:1"},
-					Deployed: []string{"img1:1", "img2:1"},
-				},
-				{
-					Synced: []string{"img1:1"},
-				},
-				{
-					Synced: []string{"img1:1"},
-				},
+			expectedActions: Actions{
+				Built:    []string{"img1:1", "img2:1"},
+				Tested:   []string{"img1:1", "img2:1"},
+				Deployed: []string{"img1:1", "img2:1"},
+				Synced:   []string{"img1:1", "img1:1"},
 			},
 		},
 	}
+
 	for _, test := range tests {
 		testutil.Run(t, test.description, func(t *testutil.T) {
 			t.SetupFakeKubernetesContext(api.Config{CurrentContext: "cluster1"})
+
 			t.Override(&sync.WorkingDir, func(string, map[string]bool) (string, error) { return "/", nil })
 
 			runner := createRunner(t, test.testBench)
-			runner.Watcher = &TestWatcher{
+			runner.FileWatcher = &TestWatcher{
 				events:    test.watchEvents,
 				testBench: test.testBench,
 			}
 
-			err := runner.Dev(context.Background(), ioutil.Discard, []*latest.Artifact{
-				{
-					ImageName: "img1",
-					Sync: &latest.Sync{
-						Manual: []*latest.SyncRule{{Src: "file1", Dest: "file1"}},
+			var err error
+			errChan := make(chan error, 1)
+			ctx, cancel := context.WithCancel(context.Background())
+			go func(errChan chan error) {
+				errChan <- runner.Dev(ctx, ioutil.Discard, []*latest.Artifact{
+					{
+						ImageName: "img1",
+						Sync: &latest.Sync{
+							Manual: []*latest.SyncRule{{Src: "file1", Dest: "file1"}},
+						},
 					},
-				},
-				{
-					ImageName: "img2",
-				},
-			})
+					{
+						ImageName: "img2",
+					},
+				})
+			}(errChan)
+
+			debounceTimer := time.NewTimer(500 * time.Millisecond)
+			for _, e := range test.watchEvents {
+				for _, m := range e.Modified {
+					// give repeating sync events time to be processed individually
+					<-debounceTimer.C
+					debounceTimer.Reset(500 * time.Millisecond)
+					test.testBench.MarkChanged(m)
+				}
+			}
+
+			timer := time.NewTimer(2 * time.Second)
+			<-timer.C
+			cancel()
+			err = <-errChan
+
+			fmt.Fprintf(os.Stdout, "after dev loop, actions: %+v\n", test.testBench.Actions())
 
 			t.CheckNoError(err)
 			t.CheckDeepEqual(test.expectedActions, test.testBench.Actions())

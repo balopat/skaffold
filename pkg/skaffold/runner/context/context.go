@@ -21,6 +21,7 @@ import (
 
 	configutil "github.com/GoogleContainerTools/skaffold/cmd/skaffold/app/cmd/config"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/config"
+	watchutil "github.com/GoogleContainerTools/skaffold/pkg/skaffold/filewatch/util"
 	kubectx "github.com/GoogleContainerTools/skaffold/pkg/skaffold/kubernetes/context"
 	runnerutil "github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/util"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
@@ -32,7 +33,9 @@ type RunContext struct {
 	Opts *config.SkaffoldOptions
 	Cfg  *latest.Pipeline
 
-	Trigger chan bool
+	BuildTrigger  chan bool
+	DeployTrigger chan bool
+	SyncTrigger   chan bool
 
 	DefaultRepo        string
 	KubeContext        string
@@ -77,6 +80,18 @@ func GetRunContext(opts *config.SkaffoldOptions, cfg *latest.Pipeline) (*RunCont
 		insecureRegistries[r] = true
 	}
 
+	var buildTrigger, deployTrigger, syncTrigger chan bool
+
+	if watchutil.IsAPITrigger(opts.DeployTrigger) {
+		deployTrigger = make(chan bool, 1)
+	}
+	if watchutil.IsAPITrigger(opts.BuildTrigger) {
+		buildTrigger = make(chan bool, 1)
+	}
+	if watchutil.IsAPITrigger(opts.SyncTrigger) {
+		syncTrigger = make(chan bool, 1)
+	}
+
 	return &RunContext{
 		Opts:               opts,
 		Cfg:                cfg,
@@ -85,6 +100,8 @@ func GetRunContext(opts *config.SkaffoldOptions, cfg *latest.Pipeline) (*RunCont
 		KubeContext:        kubeContext,
 		Namespaces:         namespaces,
 		InsecureRegistries: insecureRegistries,
-		Trigger:            make(chan bool),
+		BuildTrigger:       buildTrigger,
+		DeployTrigger:      deployTrigger,
+		SyncTrigger:        syncTrigger,
 	}, nil
 }

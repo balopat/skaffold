@@ -38,7 +38,9 @@ func TestNewRunner(t *testing.T) {
 			config:      "",
 			options: &config.SkaffoldOptions{
 				ConfigurationFile: "skaffold.yaml",
-				Trigger:           "polling",
+				BuildTrigger:      "polling",
+				DeployTrigger:     "polling",
+				SyncTrigger:       "polling",
 			},
 			shouldErr: false,
 		},
@@ -73,7 +75,9 @@ func TestNewRunner(t *testing.T) {
 			config:      "",
 			options: &config.SkaffoldOptions{
 				ConfigurationFile: "skaffold.yaml",
-				Trigger:           "unknown trigger",
+				BuildTrigger:      "unknown trigger",
+				DeployTrigger:     "polling",
+				SyncTrigger:       "polling",
 			},
 			shouldErr:     true,
 			expectedError: "unsupported trigger",

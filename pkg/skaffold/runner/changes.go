@@ -17,9 +17,9 @@ limitations under the License.
 package runner
 
 import (
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/filewatch"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/sync"
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/watch"
 )
 
 type changes struct {
@@ -32,10 +32,10 @@ type changes struct {
 
 type artifactChange struct {
 	artifact *latest.Artifact
-	events   watch.Events
+	events   filewatch.Events
 }
 
-func (c *changes) AddDirtyArtifact(a *latest.Artifact, e watch.Events) {
+func (c *changes) AddDirtyArtifact(a *latest.Artifact, e filewatch.Events) {
 	c.dirtyArtifacts = append(c.dirtyArtifacts, &artifactChange{artifact: a, events: e})
 }
 
@@ -47,11 +47,14 @@ func (c *changes) AddResync(s *sync.Item) {
 	c.needsResync = append(c.needsResync, s)
 }
 
-func (c *changes) reset() {
-	c.dirtyArtifacts = nil
-	c.needsRebuild = nil
+func (c *changes) resetSync() {
 	c.needsResync = nil
+}
 
+func (c *changes) resetDeploy() {
 	c.needsRedeploy = false
-	c.needsReload = false
+}
+
+func (c *changes) resetBuild() {
+	c.needsRebuild = nil
 }

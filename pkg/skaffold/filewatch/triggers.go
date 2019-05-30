@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package watch
+package filewatch
 
 import (
 	"bufio"
@@ -27,7 +27,9 @@ import (
 	"time"
 
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/color"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/filewatch/util"
 	runcontext "github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/context"
+	"github.com/pkg/errors"
 	"github.com/rjeczalik/notify"
 	"github.com/sirupsen/logrus"
 )
@@ -39,25 +41,41 @@ type Trigger interface {
 	Debounce() bool
 }
 
+func NewTriggers(runctx *runcontext.RunContext) (Trigger, Trigger, Trigger, error) {
+	buildTrigger, err := newTrigger(runctx.Opts.BuildTrigger, runctx.BuildTrigger, runctx.Opts.WatchPollInterval)
+	if err != nil {
+		return nil, nil, nil, errors.Wrapf(err, "creating build trigger")
+	}
+	deployTrigger, err := newTrigger(runctx.Opts.DeployTrigger, runctx.DeployTrigger, runctx.Opts.WatchPollInterval)
+	if err != nil {
+		return nil, nil, nil, errors.Wrapf(err, "creating deploy trigger")
+	}
+	syncTrigger, err := newTrigger(runctx.Opts.SyncTrigger, runctx.SyncTrigger, runctx.Opts.WatchPollInterval)
+	if err != nil {
+		return nil, nil, nil, errors.Wrapf(err, "creating sync trigger")
+	}
+	return buildTrigger, deployTrigger, syncTrigger, nil
+}
+
 // NewTrigger creates a new trigger.
-func NewTrigger(runctx *runcontext.RunContext) (Trigger, error) {
-	switch strings.ToLower(runctx.Opts.Trigger) {
-	case "polling":
+func newTrigger(triggerType string, trigger chan bool, interval int) (Trigger, error) {
+	switch strings.ToLower(triggerType) {
+	case util.Polling:
 		return &pollTrigger{
-			Interval: time.Duration(runctx.Opts.WatchPollInterval) * time.Millisecond,
+			Interval: time.Duration(interval) * time.Millisecond,
 		}, nil
-	case "notify":
+	case util.Notify:
 		return &fsNotifyTrigger{
-			Interval: time.Duration(runctx.Opts.WatchPollInterval) * time.Millisecond,
+			Interval: time.Duration(interval) * time.Millisecond,
 		}, nil
-	case "manual":
+	case util.Manual:
 		return &manualTrigger{}, nil
-	case "api":
+	case util.API:
 		return &apiTrigger{
-			Trigger: runctx.Trigger,
+			Trigger: trigger,
 		}, nil
 	default:
-		return nil, fmt.Errorf("unsupported trigger: %s", runctx.Opts.Trigger)
+		return nil, fmt.Errorf("unsupported trigger: %s", triggerType)
 	}
 }
 
@@ -213,4 +231,19 @@ func (t *apiTrigger) Debounce() bool {
 
 func (t *apiTrigger) WatchForChanges(out io.Writer) {
 	color.Yellow.Fprintln(out, "Watching on designated port for build requests...")
+}
+
+func StartTrigger(ctx context.Context, trigger Trigger) (<-chan bool, error) {
+	t, err := trigger.Start(ctx)
+	if err != nil {
+		if notifyTrigger, ok := trigger.(*fsNotifyTrigger); ok {
+			trigger = &pollTrigger{
+				Interval: notifyTrigger.Interval,
+			}
+
+			logrus.Debugln("Couldn't start notify trigger. Falling back to a polling trigger")
+			t, err = trigger.Start(ctx)
+		}
+	}
+	return t, err
 }

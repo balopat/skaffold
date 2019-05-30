@@ -390,10 +390,12 @@ Usage:
   skaffold dev
 
 Flags:
+      --build-trigger string        How are changes detected? (polling, notify, manual, or api) (default "polling")
       --cache-artifacts             Set to true to enable caching of artifacts
       --cache-file string           Specify the location of the cache file (default $HOME/.skaffold/cache)
       --cleanup                     Delete deployments after dev or debug mode is interrupted (default true)
   -d, --default-repo string         Default repository value (overrides global config)
+      --deploy-trigger string       How are changes detected? (polling, notify, manual, or api) (default "polling")
       --enable-rpc skaffold dev     Enable gRPC for exposing Skaffold events (true by default for skaffold dev)
   -f, --filename string             Filename or URL to the pipeline file (default "skaffold.yaml")
       --force                       Recreate kubernetes resources if necessary for deployment (warning: might cause downtime!) (default true)
@@ -407,9 +409,9 @@ Flags:
       --rpc-http-port int           tcp port to expose event REST API over HTTP (default 50052)
       --rpc-port int                tcp port to expose event API (default 50051)
       --skip-tests                  Whether to skip the tests after building
+      --sync-trigger string         How are changes detected? (polling, notify, manual, or api) (default "polling")
       --tail                        Stream logs from deployed objects (default true)
       --toot                        Emit a terminal beep after the deploy is complete
-      --trigger string              How are changes detected? (polling, manual or notify) (default "polling")
   -w, --watch-image strings         Choose which artifacts to watch. Artifacts with image names that contain the expression will be watched only. Default is to watch sources for all artifacts
   -i, --watch-poll-interval int     Interval (in ms) between two checks for file changes (default 1000)
 
@@ -421,10 +423,12 @@ Global Flags:
 ```
 Env vars:
 
+* `SKAFFOLD_BUILD_TRIGGER` (same as `--build-trigger`)
 * `SKAFFOLD_CACHE_ARTIFACTS` (same as `--cache-artifacts`)
 * `SKAFFOLD_CACHE_FILE` (same as `--cache-file`)
 * `SKAFFOLD_CLEANUP` (same as `--cleanup`)
 * `SKAFFOLD_DEFAULT_REPO` (same as `--default-repo`)
+* `SKAFFOLD_DEPLOY_TRIGGER` (same as `--deploy-trigger`)
 * `SKAFFOLD_ENABLE_RPC` (same as `--enable-rpc`)
 * `SKAFFOLD_FILENAME` (same as `--filename`)
 * `SKAFFOLD_FORCE` (same as `--force`)
@@ -438,9 +442,9 @@ Env vars:
 * `SKAFFOLD_RPC_HTTP_PORT` (same as `--rpc-http-port`)
 * `SKAFFOLD_RPC_PORT` (same as `--rpc-port`)
 * `SKAFFOLD_SKIP_TESTS` (same as `--skip-tests`)
+* `SKAFFOLD_SYNC_TRIGGER` (same as `--sync-trigger`)
 * `SKAFFOLD_TAIL` (same as `--tail`)
 * `SKAFFOLD_TOOT` (same as `--toot`)
-* `SKAFFOLD_TRIGGER` (same as `--trigger`)
 * `SKAFFOLD_WATCH_IMAGE` (same as `--watch-image`)
 * `SKAFFOLD_WATCH_POLL_INTERVAL` (same as `--watch-poll-interval`)
 

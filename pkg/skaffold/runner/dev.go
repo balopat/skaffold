@@ -20,13 +20,10 @@ import (
 	"context"
 	"io"
 
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/color"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/filewatch"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/kubernetes"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/sync"
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/watch"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // ErrorConfigurationChanged is a special error that's returned when the skaffold configuration was changed.
@@ -41,52 +38,8 @@ func (r *SkaffoldRunner) Dev(ctx context.Context, out io.Writer, artifacts []*la
 	portForwarder := kubernetes.NewPortForwarder(out, r.imageList, r.runCtx.Namespaces)
 	defer portForwarder.Stop()
 
-	// Create watcher and register artifacts to build current state of files.
-	changed := changes{}
-	onChange := func() error {
-		defer changed.reset()
-
-		logger.Mute()
-
-		for _, a := range changed.dirtyArtifacts {
-			s, err := sync.NewItem(a.artifact, a.events, r.builds, r.runCtx.InsecureRegistries)
-			if err != nil {
-				return errors.Wrap(err, "sync")
-			}
-			if s != nil {
-				changed.AddResync(s)
-			} else {
-				changed.AddRebuild(a.artifact)
-			}
-		}
-
-		switch {
-		case changed.needsReload:
-			return ErrorConfigurationChanged
-		case len(changed.needsResync) > 0:
-			for _, s := range changed.needsResync {
-				color.Default.Fprintf(out, "Syncing %d files for %s\n", len(s.Copy)+len(s.Delete), s.Image)
-
-				if err := r.Syncer.Sync(ctx, s); err != nil {
-					logrus.Warnln("Skipping deploy due to sync error:", err)
-					return nil
-				}
-			}
-		case len(changed.needsRebuild) > 0:
-			if err := r.buildTestDeploy(ctx, out, changed.needsRebuild); err != nil {
-				logrus.Warnln("Skipping deploy due to error:", err)
-				return nil
-			}
-		case changed.needsRedeploy:
-			if err := r.Deploy(ctx, out, r.builds); err != nil {
-				logrus.Warnln("Skipping deploy due to error:", err)
-				return nil
-			}
-		}
-
-		logger.Unmute()
-		return nil
-	}
+	// Create filewatcher and register artifacts to build current state of files.
+	r.changeSet = &changes{}
 
 	// Watch artifacts
 	for i := range artifacts {
@@ -95,34 +48,34 @@ func (r *SkaffoldRunner) Dev(ctx context.Context, out io.Writer, artifacts []*la
 			continue
 		}
 
-		if err := r.Watcher.Register(
+		if err := r.FileWatcher.Register(
 			func() ([]string, error) { return r.Builder.DependenciesForArtifact(ctx, artifact) },
-			func(e watch.Events) { changed.AddDirtyArtifact(artifact, e) },
+			func(e filewatch.Events) { r.changeSet.AddDirtyArtifact(artifact, e) },
 		); err != nil {
 			return errors.Wrapf(err, "watching files for artifact %s", artifact.ImageName)
 		}
 	}
 
 	// Watch test configuration
-	if err := r.Watcher.Register(
+	if err := r.FileWatcher.Register(
 		r.TestDependencies,
-		func(watch.Events) { changed.needsRedeploy = true },
+		func(filewatch.Events) { r.changeSet.needsRedeploy = true },
 	); err != nil {
 		return errors.Wrap(err, "watching test files")
 	}
 
 	// Watch deployment configuration
-	if err := r.Watcher.Register(
+	if err := r.FileWatcher.Register(
 		r.Dependencies,
-		func(watch.Events) { changed.needsRedeploy = true },
+		func(filewatch.Events) { r.changeSet.needsRedeploy = true },
 	); err != nil {
 		return errors.Wrap(err, "watching files for deployer")
 	}
 
 	// Watch Skaffold configuration
-	if err := r.Watcher.Register(
+	if err := r.FileWatcher.Register(
 		func() ([]string, error) { return []string{r.runCtx.Opts.ConfigurationFile}, nil },
-		func(watch.Events) { changed.needsReload = true },
+		func(filewatch.Events) { r.changeSet.needsReload = true },
 	); err != nil {
 		return errors.Wrapf(err, "watching skaffold configuration %s", r.runCtx.Opts.ConfigurationFile)
 	}
@@ -145,5 +98,21 @@ func (r *SkaffoldRunner) Dev(ctx context.Context, out io.Writer, artifacts []*la
 		}
 	}
 
-	return r.Watcher.Run(ctx, out, onChange)
+	triggerCtx, triggerCancel := context.WithCancel(ctx)
+	defer triggerCancel()
+
+	buildTrigger, err := filewatch.StartTrigger(triggerCtx, r.BuildTrigger)
+	if err != nil {
+		return errors.Wrap(err, "unable to start build trigger")
+	}
+	deployTrigger, err := filewatch.StartTrigger(triggerCtx, r.DeployTrigger)
+	if err != nil {
+		return errors.Wrap(err, "unable to start deploy trigger")
+	}
+	syncTrigger, err := filewatch.StartTrigger(triggerCtx, r.SyncTrigger)
+	if err != nil {
+		return errors.Wrap(err, "unable to start sync trigger")
+	}
+
+	return r.Listen(ctx, out, buildTrigger, deployTrigger, syncTrigger, logger)
 }

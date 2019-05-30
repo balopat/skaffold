@@ -32,6 +32,7 @@ import (
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/config"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/deploy"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/event"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/filewatch"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/kubernetes"
 	runcontext "github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/context"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
@@ -40,7 +41,6 @@ import (
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/sync/kubectl"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/test"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/version"
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/watch"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -52,7 +52,13 @@ type SkaffoldRunner struct {
 	test.Tester
 	tag.Tagger
 	sync.Syncer
-	watch.Watcher
+	filewatch.FileWatcher
+
+	BuildTrigger  filewatch.Trigger
+	DeployTrigger filewatch.Trigger
+	SyncTrigger   filewatch.Trigger
+
+	changeSet *changes
 
 	cache             *cache.Cache
 	runCtx            *runcontext.RunContext
@@ -97,7 +103,7 @@ func NewForConfig(opts *config.SkaffoldOptions, cfg *latest.SkaffoldConfig) (*Sk
 		deployer = WithNotification(deployer)
 	}
 
-	trigger, err := watch.NewTrigger(runCtx)
+	buildTrigger, deployTrigger, syncTrigger, err := filewatch.NewTriggers(runCtx)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating watch trigger")
 	}
@@ -116,7 +122,10 @@ func NewForConfig(opts *config.SkaffoldOptions, cfg *latest.SkaffoldConfig) (*Sk
 		Deployer:          deployer,
 		Tagger:            tagger,
 		Syncer:            kubectl.NewSyncer(runCtx.Namespaces),
-		Watcher:           watch.NewWatcher(trigger),
+		BuildTrigger:      buildTrigger,
+		DeployTrigger:     deployTrigger,
+		SyncTrigger:       syncTrigger,
+		FileWatcher:       filewatch.NewWatcher(),
 		labellers:         labellers,
 		imageList:         kubernetes.NewImageList(),
 		cache:             artifactCache,
@@ -265,5 +274,21 @@ func (r *SkaffoldRunner) buildTestDeploy(ctx context.Context, out io.Writer, art
 		return errors.Wrap(err, "deploy failed")
 	}
 
+	return nil
+}
+
+func (r *SkaffoldRunner) buildAndTest(ctx context.Context, out io.Writer, artifacts []*latest.Artifact) error {
+	bRes, err := r.BuildAndTest(ctx, out, artifacts)
+	if err != nil {
+		return err
+	}
+
+	// Update which images are logged.
+	for _, build := range bRes {
+		r.imageList.Add(build.Tag)
+	}
+
+	// Make sure all artifacts are redeployed. Not only those that were just built.
+	r.builds = build.MergeWithPreviousBuilds(bRes, r.builds)
 	return nil
 }

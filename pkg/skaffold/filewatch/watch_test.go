@@ -14,11 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package watch
+package filewatch
 
 import (
-	"context"
-	"io/ioutil"
 	"sync"
 	"testing"
 	"time"
@@ -60,37 +58,33 @@ func TestWatch(t *testing.T) {
 			},
 		},
 	}
-	for _, test := range tests {
-		testutil.Run(t, test.description, func(t *testutil.T) {
-			tmpDir := t.NewTempDir()
-			test.setup(tmpDir)
 
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			folder, cleanup := testutil.NewTempDir(t)
+			defer cleanup()
+
+			test.setup(folder)
 			folderChanged := newCallback()
-			somethingChanged := newCallback()
 
 			// Watch folder
-			watcher := NewWatcher(&pollTrigger{
-				Interval: 10 * time.Millisecond,
-			})
-			err := watcher.Register(tmpDir.List, folderChanged.call)
-			t.CheckNoError(err)
+			watcher := NewWatcher()
+			err := watcher.Register(folder.List, folderChanged.call)
+			testutil.CheckError(t, false, err)
 
 			// Run the watcher
-			ctx, cancel := context.WithCancel(context.Background())
 			var stopped sync.WaitGroup
 			stopped.Add(1)
 			go func() {
-				err = watcher.Run(ctx, ioutil.Discard, somethingChanged.callNoErr)
+				err = watcher.ComputeChanges(false)
 				stopped.Done()
-				t.CheckNoError(err)
+				testutil.CheckError(t, false, err)
 			}()
 
-			test.update(tmpDir)
+			test.update(folder)
 
-			// Wait for the callbacks
+			// Wait for the callback
 			folderChanged.wait()
-			somethingChanged.wait()
-			cancel()
 			stopped.Wait() // Make sure the watcher is stopped before deleting the tmp folder
 		})
 	}
@@ -111,11 +105,6 @@ func newCallback() *callback {
 
 func (c *callback) call(e Events) {
 	c.wg.Done()
-}
-
-func (c *callback) callNoErr() error {
-	c.wg.Done()
-	return nil
 }
 
 func (c *callback) wait() {

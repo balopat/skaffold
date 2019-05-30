@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package watch
+package filewatch
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ import (
 	"github.com/GoogleContainerTools/skaffold/testutil"
 )
 
-func TestNewTrigger(t *testing.T) {
+func TestNewBuildTrigger(t *testing.T) {
 	var tests = []struct {
 		description string
 		opts        *config.SkaffoldOptions
@@ -35,31 +35,31 @@ func TestNewTrigger(t *testing.T) {
 	}{
 		{
 			description: "polling trigger",
-			opts:        &config.SkaffoldOptions{Trigger: "polling", WatchPollInterval: 1},
+			opts:        &config.SkaffoldOptions{BuildTrigger: "polling", WatchPollInterval: 1},
 			expected: &pollTrigger{
 				Interval: time.Duration(1) * time.Millisecond,
 			},
 		},
 		{
 			description: "notify trigger",
-			opts:        &config.SkaffoldOptions{Trigger: "notify", WatchPollInterval: 1},
+			opts:        &config.SkaffoldOptions{BuildTrigger: "notify", WatchPollInterval: 1},
 			expected: &fsNotifyTrigger{
 				Interval: time.Duration(1) * time.Millisecond,
 			},
 		},
 		{
 			description: "manual trigger",
-			opts:        &config.SkaffoldOptions{Trigger: "manual"},
+			opts:        &config.SkaffoldOptions{BuildTrigger: "manual"},
 			expected:    &manualTrigger{},
 		},
 		{
 			description: "api trigger",
-			opts:        &config.SkaffoldOptions{Trigger: "api"},
+			opts:        &config.SkaffoldOptions{BuildTrigger: "api"},
 			expected:    &apiTrigger{},
 		},
 		{
 			description: "unknown trigger",
-			opts:        &config.SkaffoldOptions{Trigger: "unknown"},
+			opts:        &config.SkaffoldOptions{BuildTrigger: "unknown"},
 			shouldErr:   true,
 		},
 	}
@@ -69,9 +69,60 @@ func TestNewTrigger(t *testing.T) {
 				Opts: test.opts,
 			}
 
-			got, err := NewTrigger(runCtx)
-
+			got, err := newTrigger(runCtx.Opts.BuildTrigger, runCtx.BuildTrigger, runCtx.Opts.WatchPollInterval)
 			t.CheckErrorAndDeepEqual(test.shouldErr, err, test.expected, got)
+		})
+	}
+}
+
+func TestNewTriggers(t *testing.T) {
+	var tests = []struct {
+		name           string
+		opts           *config.SkaffoldOptions
+		expectedBuild  Trigger
+		expectedDeploy Trigger
+		expectedSync   Trigger
+		shouldErr      bool
+	}{
+		{
+			name: "all api",
+			opts: &config.SkaffoldOptions{
+				BuildTrigger:  "api",
+				DeployTrigger: "api",
+				SyncTrigger:   "api",
+			},
+			expectedBuild:  &apiTrigger{},
+			expectedDeploy: &apiTrigger{},
+			expectedSync:   &apiTrigger{},
+		},
+		{
+			name: "one of each",
+			opts: &config.SkaffoldOptions{
+				BuildTrigger:  "polling",
+				DeployTrigger: "api",
+				SyncTrigger:   "manual",
+			},
+			expectedBuild:  &pollTrigger{},
+			expectedDeploy: &apiTrigger{},
+			expectedSync:   &manualTrigger{},
+		},
+		{
+			name:      "unspecified triggers",
+			shouldErr: true,
+			opts:      &config.SkaffoldOptions{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runCtx := &runcontext.RunContext{
+				Opts: tt.opts,
+			}
+			b, d, s, err := NewTriggers(runCtx)
+			testutil.CheckError(t, tt.shouldErr, err)
+			testutil.CheckDeepEqual(t, b, tt.expectedBuild)
+			testutil.CheckDeepEqual(t, d, tt.expectedDeploy)
+			testutil.CheckDeepEqual(t, s, tt.expectedSync)
 		})
 	}
 }
