@@ -1,0 +1,7 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+metadata:
+  name: skaffold-in-cluster
+build:
+  cluster:
+    namespace: default #

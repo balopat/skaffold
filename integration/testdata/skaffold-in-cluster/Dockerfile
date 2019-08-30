@@ -10,4 +10,4 @@ COPY ./skaffold /usr/bin/skaffold
 RUN chmod +x /usr/bin/skaffold
 
 COPY ./test-build /test-build
-COPY ./skaffold.yaml ./skaffold.yaml
+COPY config/base/skaffold.yaml ./skaffold.yaml

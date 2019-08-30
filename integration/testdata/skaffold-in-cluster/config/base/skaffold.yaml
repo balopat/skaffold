@@ -1,0 +1,9 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+metadata:
+  name: skaffold-in-cluster
+build:
+  tagPolicy:
+    sha256: {}
+  cluster:
+    namespace: default
