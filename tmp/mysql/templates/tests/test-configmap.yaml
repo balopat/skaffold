@@ -1,0 +1,14 @@
+---
+# Source: mysql/templates/tests/test-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: RELEASE-NAME-mysql-test
+  namespace: default
+  labels:
+    app: RELEASE-NAME-mysql
+    chart: "mysql-1.6.2"
+    heritage: "Helm"
+    release: "RELEASE-NAME"
+data:
+  run.sh: |-
